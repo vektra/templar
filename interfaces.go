@@ -17,3 +17,8 @@ type Transport interface {
 	RoundTrip(*http.Request) (*http.Response, error)
 	CancelRequest(req *http.Request)
 }
+
+type CacheBackend interface {
+	Set(req *http.Request, resp *http.Response)
+	Get(req *http.Request) (*http.Response, bool)
+}

@@ -24,13 +24,15 @@ func (s slowTransport) CancelRequest(req *http.Request) {
 func TestUpstream(t *testing.T) {
 	n := neko.Start(t)
 
+	var mockTrans MockTransport
+
+	n.CheckMock(&mockTrans.Mock)
+
 	n.It("sends a request to the transport", func() {
 		req, err := http.NewRequest("GET", "http://google.com/foo/bar", nil)
 		require.NoError(t, err)
 
 		res := httptest.NewRecorder()
-
-		var mockTrans MockTransport
 
 		timeout := NewUpstream(&mockTrans)
 
