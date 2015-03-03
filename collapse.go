@@ -59,11 +59,11 @@ func (c *Collapser) finish(req *http.Request, res *http.Response) {
 	c.lock.Unlock()
 
 	if ok {
-		running.Finish(res)
+		running.finish(res)
 	}
 }
 
-func (r *RunningRequest) Finish(res *http.Response) {
+func (r *RunningRequest) finish(res *http.Response) {
 	for _, c := range r.others {
 		c <- res
 	}
