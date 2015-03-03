@@ -12,3 +12,8 @@ type Client interface {
 type Stats interface {
 	Emit(res http.ResponseWriter, req *http.Request, dur time.Duration) error
 }
+
+type Transport interface {
+	http.RoundTripper
+	CancelRequest(req *http.Request)
+}
