@@ -14,6 +14,6 @@ type Stats interface {
 }
 
 type Transport interface {
-	http.RoundTripper
+	RoundTrip(*http.Request) (*http.Response, error)
 	CancelRequest(req *http.Request)
 }
