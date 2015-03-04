@@ -1,6 +1,7 @@
 package templar
 
 import (
+	"io"
 	"net/http"
 	"sync"
 )
@@ -8,63 +9,106 @@ import (
 type RunningRequest struct {
 	Request *http.Request
 
-	others []chan *http.Response
+	others []Responder
+	done   chan struct{}
 }
 
 type Collapser struct {
-	client Client
+	client      Client
+	categorizer *Categorizer
 
 	lock    sync.Mutex
 	running map[string]*RunningRequest
 }
 
-func NewCollapser(client Client) *Collapser {
+func NewCollapser(client Client, categorizer *Categorizer) *Collapser {
 	return &Collapser{
-		client:  client,
-		running: make(map[string]*RunningRequest),
+		client:      client,
+		categorizer: categorizer,
+		running:     make(map[string]*RunningRequest),
 	}
 }
 
-func (c *Collapser) Forward(res http.ResponseWriter, req *http.Request) error {
+type collapseResponder struct {
+	collapser *Collapser
+	request   *http.Request
+	running   *RunningRequest
+}
+
+func (c *collapseResponder) Send(res *http.Response) io.Writer {
+	return c.collapser.finish(c.request, res, c.running)
+}
+
+func (c *Collapser) finish(req *http.Request, res *http.Response, rr *RunningRequest) io.Writer {
+
 	c.lock.Lock()
 
-	if running, ok := c.running[req.URL.String()]; ok {
-		myself := make(chan *http.Response)
-		running.others = append(running.others, myself)
+	key := req.URL.String()
+	delete(c.running, key)
 
-		c.lock.Unlock()
+	c.lock.Unlock()
 
-		upstream := <-myself
+	cw := &collapsedWriter{running: rr}
 
-		upstream.Write(res)
-
-		return nil
-	} else {
-		c.lock.Unlock()
+	for _, c := range rr.others {
+		cw.w = append(cw.w, c.Send(res))
 	}
 
-	return c.client.Forward(res, req)
+	return cw
 }
 
-func (c *Collapser) finish(req *http.Request, res *http.Response) {
+type collapsedWriter struct {
+	w       []io.Writer
+	running *RunningRequest
+}
+
+func (cw *collapsedWriter) Write(p []byte) (n int, err error) {
+	for _, w := range cw.w {
+		n, err = w.Write(p)
+		if err != nil {
+			return
+		}
+
+		if n != len(p) {
+			err = io.ErrShortWrite
+			return
+		}
+	}
+
+	return len(p), nil
+}
+
+func (cw *collapsedWriter) Finish() {
+	close(cw.running.done)
+}
+
+func (c *Collapser) Forward(res Responder, req *http.Request) error {
+	if !c.categorizer.Stateless(req) {
+		return c.client.Forward(res, req)
+	}
+
 	c.lock.Lock()
 
 	key := req.URL.String()
 
-	running, ok := c.running[key]
-	if ok {
-		delete(c.running, key)
+	if running, ok := c.running[key]; ok {
+		running.others = append(running.others, res)
+
+		c.lock.Unlock()
+
+		<-running.done
+
+		return nil
 	}
 
+	rr := &RunningRequest{
+		Request: req,
+		others:  []Responder{res},
+		done:    make(chan struct{}),
+	}
+
+	c.running[key] = rr
 	c.lock.Unlock()
 
-	if ok {
-		running.finish(res)
-	}
-}
-
-func (r *RunningRequest) finish(res *http.Response) {
-	for _, c := range r.others {
-		c <- res
-	}
+	return c.client.Forward(&collapseResponder{c, req, rr}, req)
 }

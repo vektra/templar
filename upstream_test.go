@@ -2,24 +2,12 @@ package templar
 
 import (
 	"net/http"
-	"net/http/httptest"
 	"testing"
-	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/vektra/neko"
 )
-
-type slowTransport struct{}
-
-func (s slowTransport) RoundTrip(req *http.Request) (*http.Response, error) {
-	time.Sleep(10 * time.Second)
-	return nil, nil
-}
-
-func (s slowTransport) CancelRequest(req *http.Request) {
-}
 
 func TestUpstream(t *testing.T) {
 	n := neko.Start(t)
@@ -32,7 +20,7 @@ func TestUpstream(t *testing.T) {
 		req, err := http.NewRequest("GET", "http://google.com/foo/bar", nil)
 		require.NoError(t, err)
 
-		res := httptest.NewRecorder()
+		res := newRecordingSender()
 
 		timeout := NewUpstream(&mockTrans)
 
@@ -47,7 +35,7 @@ func TestUpstream(t *testing.T) {
 		err = timeout.Forward(res, req)
 		require.NoError(t, err)
 
-		assert.Equal(t, 304, res.Code)
+		assert.Equal(t, 304, res.w.Code)
 	})
 
 	n.It("will timeout a request if requested", func() {
@@ -56,14 +44,14 @@ func TestUpstream(t *testing.T) {
 
 		req.Header.Add("X-Templar-Timeout", "2s")
 
-		res := httptest.NewRecorder()
+		res := newRecordingSender()
 
-		timeout := NewUpstream(slowTransport{})
+		timeout := NewUpstream(&slowTransport{10})
 
 		err = timeout.Forward(res, req)
 		require.NoError(t, err)
 
-		assert.Equal(t, 504, res.Code)
+		assert.Equal(t, 504, res.w.Code)
 	})
 
 	n.Meow()

@@ -1,12 +1,17 @@
 package templar
 
 import (
+	"io"
 	"net/http"
 	"time"
 )
 
+type Responder interface {
+	Send(resp *http.Response) io.Writer
+}
+
 type Client interface {
-	Forward(res http.ResponseWriter, req *http.Request) error
+	Forward(res Responder, req *http.Request) error
 }
 
 type Stats interface {
@@ -21,4 +26,8 @@ type Transport interface {
 type CacheBackend interface {
 	Set(req *http.Request, resp *http.Response)
 	Get(req *http.Request) (*http.Response, bool)
+}
+
+type Finisher interface {
+	Finish()
 }

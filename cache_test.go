@@ -22,7 +22,7 @@ func TestFallbackCache(t *testing.T) {
 	n.CheckMock(&transport.Mock)
 
 	n.Setup(func() {
-		cache = NewFallbackCacher(&backend, &transport)
+		cache = NewFallbackCacher(&backend, &transport, NewCategorizer())
 	})
 
 	n.It("caches a response that flows though it", func() {
@@ -57,6 +57,20 @@ func TestFallbackCache(t *testing.T) {
 		assert.Equal(t, upstream, out)
 	})
 
+	n.It("does not cache stateful requests", func() {
+		req, err := http.NewRequest("POST", "http://google.com/foo/bar", nil)
+		require.NoError(t, err)
+
+		upstream := &http.Response{
+			Request: req,
+		}
+
+		transport.On("RoundTrip", req).Return(upstream, nil)
+
+		_, err = cache.RoundTrip(req)
+		require.NoError(t, err)
+	})
+
 	n.Meow()
 }
 
@@ -73,7 +87,7 @@ func TestEagerCache(t *testing.T) {
 	n.CheckMock(&transport.Mock)
 
 	n.Setup(func() {
-		cache = NewEagerCacher(&backend, &transport)
+		cache = NewEagerCacher(&backend, &transport, NewCategorizer())
 	})
 
 	n.It("caches a response that flows though it", func() {
@@ -106,6 +120,20 @@ func TestEagerCache(t *testing.T) {
 		require.NoError(t, err)
 
 		assert.Equal(t, upstream, out)
+	})
+
+	n.It("does not cache stateful requests", func() {
+		req, err := http.NewRequest("POST", "http://google.com/foo/bar", nil)
+		require.NoError(t, err)
+
+		upstream := &http.Response{
+			Request: req,
+		}
+
+		transport.On("RoundTrip", req).Return(upstream, nil)
+
+		_, err = cache.RoundTrip(req)
+		require.NoError(t, err)
 	})
 
 	n.Meow()

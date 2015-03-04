@@ -8,7 +8,7 @@ type MockClient struct {
 	mock.Mock
 }
 
-func (m *MockClient) Forward(res http.ResponseWriter, req *http.Request) error {
+func (m *MockClient) Forward(res Responder, req *http.Request) error {
 	ret := m.Called(res, req)
 
 	r0 := ret.Error(0)

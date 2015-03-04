@@ -30,23 +30,22 @@ func (t *Upstream) extractTimeout(req *http.Request) (time.Duration, bool) {
 	return dur, true
 }
 
-func (t *Upstream) forward(res http.ResponseWriter, req *http.Request) error {
+func (t *Upstream) forward(res Responder, req *http.Request) error {
 	upstream, err := t.transport.RoundTrip(req)
 	if err != nil {
 		return err
 	}
 
-	for k, v := range upstream.Header {
-		res.Header()[k] = v
-	}
+	w := res.Send(upstream)
 
-	res.WriteHeader(upstream.StatusCode)
-	return upstream.Write(res)
+	CopyBody(w, upstream.Body)
+
+	return err
 }
 
 var ErrTimeout = errors.New("request timed out")
 
-func (t *Upstream) Forward(res http.ResponseWriter, req *http.Request) error {
+func (t *Upstream) Forward(res Responder, req *http.Request) error {
 	dur, ok := t.extractTimeout(req)
 
 	if !ok {
@@ -67,8 +66,14 @@ func (t *Upstream) Forward(res http.ResponseWriter, req *http.Request) error {
 	err := <-fin
 
 	if err == ErrTimeout {
-		res.WriteHeader(504)
-		res.Header().Set("X-Templar-TimedOut", "true")
+		uperr := &http.Response{
+			Request:    req,
+			StatusCode: 504,
+			Header:     make(http.Header),
+		}
+
+		uperr.Header.Set("X-Templar-TimedOut", "true")
+		res.Send(uperr)
 	}
 
 	return nil
