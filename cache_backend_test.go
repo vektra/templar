@@ -69,5 +69,25 @@ func TestCache(t *testing.T) {
 		assert.Equal(t, funky, string(bytes))
 	})
 
+	n.It("honors cache time requested in header", func() {
+		req, err := http.NewRequest("GET", "http://google.com/foo/bar", nil)
+		require.NoError(t, err)
+
+		upstream := &http.Response{
+			Request:    req,
+			StatusCode: 304,
+			Status:     "304 Too Funky",
+		}
+
+		req.Header.Set(CacheTimeHeader, "1s")
+
+		cache.Set(req, upstream)
+
+		time.Sleep(1 * time.Second)
+
+		_, ok := cache.Get(req)
+		require.False(t, ok)
+	})
+
 	n.Meow()
 }

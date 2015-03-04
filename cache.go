@@ -15,7 +15,10 @@ func NewFallbackCacher(backend CacheBackend, transport Transport, categorizer *C
 	return &FallbackCacher{backend, transport, categorizer}
 }
 
-const CacheHeader = "X-Templar-Cache"
+const (
+	CacheHeader     = "X-Templar-Cache"
+	CacheTimeHeader = "X-Templar-CacheFor"
+)
 
 func (c *FallbackCacher) shouldCache(req *http.Request) bool {
 	return c.categorizer.Stateless(req) && req.Header.Get(CacheHeader) == "fallback"

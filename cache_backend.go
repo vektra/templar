@@ -53,7 +53,15 @@ func (m *Cache) Set(req *http.Request, resp *http.Response) {
 	cr.status = resp.StatusCode
 	cr.headers = resp.Header
 
-	m.c.Add(req.URL.String(), cr, 0)
+	var expires time.Duration
+
+	if reqExpire := req.Header.Get(CacheTimeHeader); reqExpire != "" {
+		if dur, err := time.ParseDuration(reqExpire); err == nil {
+			expires = dur
+		}
+	}
+
+	m.c.Add(req.URL.String(), cr, expires)
 }
 
 func (m *Cache) Get(req *http.Request) (*http.Response, bool) {
