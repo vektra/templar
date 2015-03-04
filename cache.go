@@ -16,8 +16,9 @@ func NewFallbackCacher(backend CacheBackend, transport Transport, categorizer *C
 }
 
 const (
-	CacheHeader     = "X-Templar-Cache"
-	CacheTimeHeader = "X-Templar-CacheFor"
+	CacheHeader       = "X-Templar-Cache"
+	CacheTimeHeader   = "X-Templar-CacheFor"
+	CacheCachedHeader = "X-Templar-Cached"
 )
 
 func (c *FallbackCacher) shouldCache(req *http.Request) bool {
@@ -42,7 +43,10 @@ func (c *FallbackCacher) RoundTrip(req *http.Request) (*http.Response, error) {
 
 func (c *FallbackCacher) Fallback(req *http.Request) (*http.Response, error) {
 	if upstream, ok := c.backend.Get(req); ok {
-		return upstream, nil
+		if upstream != nil {
+			upstream.Header.Add(CacheCachedHeader, "yes")
+			return upstream, nil
+		}
 	}
 
 	return nil, nil
@@ -76,6 +80,8 @@ func (c *EagerCacher) RoundTrip(req *http.Request) (*http.Response, error) {
 	}
 
 	if upstream, ok := c.backend.Get(req); ok {
+		upstream.Header.Add(CacheCachedHeader, "yes")
+
 		return upstream, nil
 	}
 

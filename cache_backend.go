@@ -78,6 +78,10 @@ func (m *Cache) Get(req *http.Request) (*http.Response, bool) {
 		Header:     cr.headers,
 	}
 
+	if resp.Header == nil {
+		resp.Header = make(http.Header)
+	}
+
 	resp.Body = ioutil.NopCloser(bytes.NewReader(cr.body))
 
 	return resp, true

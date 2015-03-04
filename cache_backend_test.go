@@ -31,6 +31,7 @@ func TestCache(t *testing.T) {
 			Request:    req,
 			StatusCode: 304,
 			Status:     "304 Too Funky",
+			Header:     make(http.Header),
 		}
 
 		cache.Set(req, upstream)

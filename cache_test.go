@@ -31,6 +31,7 @@ func TestFallbackCache(t *testing.T) {
 
 		upstream := &http.Response{
 			Request: req,
+			Header:  make(http.Header),
 		}
 
 		transport.On("RoundTrip", req).Return(upstream, nil)
@@ -47,6 +48,7 @@ func TestFallbackCache(t *testing.T) {
 
 		upstream := &http.Response{
 			Request: req,
+			Header:  make(http.Header),
 		}
 
 		transport.On("RoundTrip", req).Return(upstream, nil)
@@ -64,6 +66,7 @@ func TestFallbackCache(t *testing.T) {
 
 		upstream := &http.Response{
 			Request: req,
+			Header:  make(http.Header),
 		}
 
 		backend.On("Get", req).Return(upstream, true)
@@ -72,6 +75,8 @@ func TestFallbackCache(t *testing.T) {
 		require.NoError(t, err)
 
 		assert.Equal(t, upstream, out)
+
+		assert.Equal(t, "yes", out.Header.Get("X-Templar-Cached"))
 	})
 
 	n.It("does not cache stateful requests", func() {
@@ -82,6 +87,7 @@ func TestFallbackCache(t *testing.T) {
 
 		upstream := &http.Response{
 			Request: req,
+			Header:  make(http.Header),
 		}
 
 		transport.On("RoundTrip", req).Return(upstream, nil)
@@ -109,12 +115,13 @@ func TestEagerCache(t *testing.T) {
 		cache = NewEagerCacher(&backend, &transport, NewCategorizer())
 	})
 
-	n.It("normally doe not cache anything", func() {
+	n.It("normally does not cache anything", func() {
 		req, err := http.NewRequest("GET", "http://google.com/foo/bar", nil)
 		require.NoError(t, err)
 
 		upstream := &http.Response{
 			Request: req,
+			Header:  make(http.Header),
 		}
 
 		transport.On("RoundTrip", req).Return(upstream, nil)
@@ -131,6 +138,7 @@ func TestEagerCache(t *testing.T) {
 
 		upstream := &http.Response{
 			Request: req,
+			Header:  make(http.Header),
 		}
 
 		backend.On("Get", req).Return((*http.Response)(nil), false)
@@ -141,6 +149,25 @@ func TestEagerCache(t *testing.T) {
 		require.NoError(t, err)
 	})
 
+	n.It("returns a cached value if available", func() {
+		req, err := http.NewRequest("GET", "http://google.com/foo/bar", nil)
+		require.NoError(t, err)
+
+		req.Header.Add(CacheHeader, "eager")
+
+		upstream := &http.Response{
+			Request: req,
+			Header:  make(http.Header),
+		}
+
+		backend.On("Get", req).Return(upstream, true)
+
+		out, err := cache.RoundTrip(req)
+		require.NoError(t, err)
+
+		assert.Equal(t, "yes", out.Header.Get("X-Templar-Cached"))
+	})
+
 	n.It("does not cache stateful requests", func() {
 		req, err := http.NewRequest("POST", "http://google.com/foo/bar", nil)
 		require.NoError(t, err)
@@ -149,6 +176,7 @@ func TestEagerCache(t *testing.T) {
 
 		upstream := &http.Response{
 			Request: req,
+			Header:  make(http.Header),
 		}
 
 		transport.On("RoundTrip", req).Return(upstream, nil)
