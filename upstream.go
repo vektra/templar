@@ -3,8 +3,11 @@ package templar
 import (
 	"errors"
 	"net/http"
+	"strings"
 	"time"
 )
+
+const TemplarPrefix = "X-Templar-"
 
 type Upstream struct {
 	transport Transport
@@ -31,7 +34,20 @@ func (t *Upstream) extractTimeout(req *http.Request) (time.Duration, bool) {
 }
 
 func (t *Upstream) forward(res Responder, req *http.Request) error {
-	upstream, err := t.transport.RoundTrip(req)
+	out := &http.Request{}
+	*out = *req
+
+	out.Header = make(http.Header)
+
+	for k, v := range req.Header {
+		if strings.HasPrefix(k, TemplarPrefix) {
+			continue
+		}
+
+		out.Header[k] = v
+	}
+
+	upstream, err := t.transport.RoundTrip(out)
 	if err != nil {
 		return err
 	}

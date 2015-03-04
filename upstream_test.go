@@ -22,17 +22,44 @@ func TestUpstream(t *testing.T) {
 
 		res := newRecordingSender()
 
-		timeout := NewUpstream(&mockTrans)
+		upstream := NewUpstream(&mockTrans)
 
-		upstream := &http.Response{
+		resp := &http.Response{
 			Request:    req,
 			StatusCode: 304,
 			Status:     "304 Too Funky",
 		}
 
-		mockTrans.On("RoundTrip", req).Return(upstream, nil)
+		mockTrans.On("RoundTrip", req).Return(resp, nil)
 
-		err = timeout.Forward(res, req)
+		err = upstream.Forward(res, req)
+		require.NoError(t, err)
+
+		assert.Equal(t, 304, res.w.Code)
+	})
+
+	n.It("does not send templar headers", func() {
+		req, err := http.NewRequest("GET", "http://google.com/foo/bar", nil)
+		require.NoError(t, err)
+
+		req.Header.Set(CategoryHeader, "funky")
+
+		res := newRecordingSender()
+
+		upstream := NewUpstream(&mockTrans)
+
+		resp := &http.Response{
+			Request:    req,
+			StatusCode: 304,
+			Status:     "304 Too Funky",
+		}
+
+		exp, err := http.NewRequest("GET", "http://google.com/foo/bar", nil)
+		require.NoError(t, err)
+
+		mockTrans.On("RoundTrip", exp).Return(resp, nil)
+
+		err = upstream.Forward(res, req)
 		require.NoError(t, err)
 
 		assert.Equal(t, 304, res.w.Code)
@@ -46,9 +73,9 @@ func TestUpstream(t *testing.T) {
 
 		res := newRecordingSender()
 
-		timeout := NewUpstream(&slowTransport{10})
+		upstream := NewUpstream(&slowTransport{10})
 
-		err = timeout.Forward(res, req)
+		err = upstream.Forward(res, req)
 		require.NoError(t, err)
 
 		assert.Equal(t, 504, res.w.Code)
@@ -62,9 +89,9 @@ func TestUpstream(t *testing.T) {
 
 		res := newRecordingSender()
 
-		timeout := NewUpstream(&slowTransportFallback{seconds: 10, fallback: true})
+		upstream := NewUpstream(&slowTransportFallback{seconds: 10, fallback: true})
 
-		err = timeout.Forward(res, req)
+		err = upstream.Forward(res, req)
 		require.NoError(t, err)
 
 		assert.Equal(t, 201, res.w.Code)
@@ -78,9 +105,9 @@ func TestUpstream(t *testing.T) {
 
 		res := newRecordingSender()
 
-		timeout := NewUpstream(&slowTransportFallback{seconds: 10, fallback: false})
+		upstream := NewUpstream(&slowTransportFallback{seconds: 10, fallback: false})
 
-		err = timeout.Forward(res, req)
+		err = upstream.Forward(res, req)
 		require.NoError(t, err)
 
 		assert.Equal(t, 504, res.w.Code)
