@@ -17,9 +17,17 @@ func (d *DebugStats) Emit(req *http.Request, dur time.Duration) {
 	fmt.Printf("[%s] E %s %s (%s)\n", time.Now(), req.Method, req.URL, dur)
 }
 
+func (d *DebugStats) RequestTimeout(req *http.Request, timeout time.Duration) {
+	fmt.Printf("[%s] T %s %s (%s)\n", time.Now(), req.Method, req.URL, timeout)
+}
+
+var _ = Stats(&DebugStats{})
+
 type StatsdOutput struct {
 	client StatsdClient
 }
+
+var _ = Stats(&StatsdOutput{})
 
 func NewStatsdOutput(client StatsdClient) *StatsdOutput {
 	return &StatsdOutput{client}
@@ -39,6 +47,11 @@ func (s *StatsdOutput) StartRequest(req *http.Request) {
 func (s *StatsdOutput) Emit(req *http.Request, delta time.Duration) {
 	s.client.GaugeDelta("templar.requests.active", -1)
 	s.client.PrecisionTiming("templar.request.url."+s.url(req), delta)
+}
+
+func (s *StatsdOutput) RequestTimeout(req *http.Request, timeout time.Duration) {
+	s.client.Incr("templar.timeout.host."+req.Host, 1)
+	s.client.Incr("templar.timeout.url."+s.url(req), 1)
 }
 
 type MultiStats []Stats

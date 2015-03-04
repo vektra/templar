@@ -3,6 +3,7 @@ package templar
 import (
 	"net/http"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -12,9 +13,13 @@ import (
 func TestUpstream(t *testing.T) {
 	n := neko.Start(t)
 
-	var mockTrans MockTransport
+	var (
+		mockTrans MockTransport
+		stats     MockStats
+	)
 
 	n.CheckMock(&mockTrans.Mock)
+	n.CheckMock(&stats.Mock)
 
 	n.It("sends a request to the transport", func() {
 		req, err := http.NewRequest("GET", "http://google.com/foo/bar", nil)
@@ -22,7 +27,7 @@ func TestUpstream(t *testing.T) {
 
 		res := newRecordingSender()
 
-		upstream := NewUpstream(&mockTrans)
+		upstream := NewUpstream(&mockTrans, &stats)
 
 		resp := &http.Response{
 			Request:    req,
@@ -46,7 +51,7 @@ func TestUpstream(t *testing.T) {
 
 		res := newRecordingSender()
 
-		upstream := NewUpstream(&mockTrans)
+		upstream := NewUpstream(&mockTrans, &stats)
 
 		resp := &http.Response{
 			Request:    req,
@@ -73,7 +78,9 @@ func TestUpstream(t *testing.T) {
 
 		res := newRecordingSender()
 
-		upstream := NewUpstream(&slowTransport{10})
+		upstream := NewUpstream(&slowTransport{10}, &stats)
+
+		stats.On("RequestTimeout", req, 2*time.Second).Return(nil)
 
 		err = upstream.Forward(res, req)
 		require.NoError(t, err)
@@ -89,7 +96,9 @@ func TestUpstream(t *testing.T) {
 
 		res := newRecordingSender()
 
-		upstream := NewUpstream(&slowTransportFallback{seconds: 10, fallback: true})
+		upstream := NewUpstream(&slowTransportFallback{seconds: 10, fallback: true}, &stats)
+
+		stats.On("RequestTimeout", req, 2*time.Second).Return(nil)
 
 		err = upstream.Forward(res, req)
 		require.NoError(t, err)
@@ -105,7 +114,9 @@ func TestUpstream(t *testing.T) {
 
 		res := newRecordingSender()
 
-		upstream := NewUpstream(&slowTransportFallback{seconds: 10, fallback: false})
+		upstream := NewUpstream(&slowTransportFallback{seconds: 10, fallback: false}, &stats)
+
+		stats.On("RequestTimeout", req, 2*time.Second).Return(nil)
 
 		err = upstream.Forward(res, req)
 		require.NoError(t, err)

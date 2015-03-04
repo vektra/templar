@@ -11,10 +11,11 @@ const TemplarPrefix = "X-Templar-"
 
 type Upstream struct {
 	transport Transport
+	stats     Stats
 }
 
-func NewUpstream(client Transport) *Upstream {
-	return &Upstream{client}
+func NewUpstream(client Transport, stats Stats) *Upstream {
+	return &Upstream{client, stats}
 }
 
 const CTimeoutHeader = "X-Templar-Timeout"
@@ -82,6 +83,8 @@ func (t *Upstream) Forward(res Responder, req *http.Request) error {
 	err := <-fin
 
 	if err == ErrTimeout {
+		t.stats.RequestTimeout(req, dur)
+
 		if fb, ok := t.transport.(Fallback); ok {
 			upstream, err := fb.Fallback(req)
 			if err != nil {

@@ -17,6 +17,7 @@ type Client interface {
 type Stats interface {
 	StartRequest(req *http.Request)
 	Emit(req *http.Request, dur time.Duration)
+	RequestTimeout(req *http.Request, timeout time.Duration)
 }
 
 type Transport interface {

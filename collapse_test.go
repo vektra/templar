@@ -142,7 +142,7 @@ func TestCollapse(t *testing.T) {
 	})
 
 	n.It("can collapse multiple requests into one", func() {
-		upstream := NewUpstream(&slowTransport{1})
+		upstream := NewUpstream(&slowTransport{1}, &MockStats{})
 
 		collapse := NewCollapser(upstream, NewCategorizer())
 

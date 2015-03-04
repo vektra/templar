@@ -48,5 +48,18 @@ func TestStatsdOutput(t *testing.T) {
 		output.Emit(req, t)
 	})
 
+	n.It("emits stats when a request times out", func() {
+		req, err := http.NewRequest("GET", "http://google.com/foo/bar", nil)
+		require.NoError(t, err)
+
+		t := 5 * time.Second
+
+		client.On("Incr", "templar.timeout.host.google.com", 1).Return(nil)
+		client.On("Incr", "templar.timeout.url.google.com-foo-bar", 1).Return(nil)
+
+		output.RequestTimeout(req, t)
+
+	})
+
 	n.Meow()
 }
