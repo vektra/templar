@@ -13,26 +13,34 @@ func NewFallbackCacher(backend CacheBackend, transport Transport, categorizer *C
 	return &FallbackCacher{backend, transport, categorizer}
 }
 
+const CacheHeader = "X-Templar-Cache"
+
+func (c *FallbackCacher) shouldCache(req *http.Request) bool {
+	return c.categorizer.Stateless(req) && req.Header.Get(CacheHeader) == "fallback"
+}
+
 func (c *FallbackCacher) RoundTrip(req *http.Request) (*http.Response, error) {
 	upstream, err := c.tranpsort.RoundTrip(req)
 
-	if !c.categorizer.Stateless(req) {
+	if !c.shouldCache(req) {
 		return upstream, err
 	}
 
 	if err != nil {
-		if err == ErrTimeout {
-			if upstream, ok := c.backend.Get(req); ok {
-				return upstream, nil
-			}
-		}
-
 		return nil, err
 	}
 
 	c.backend.Set(req, upstream)
 
 	return upstream, nil
+}
+
+func (c *FallbackCacher) Fallback(req *http.Request) (*http.Response, error) {
+	if upstream, ok := c.backend.Get(req); ok {
+		return upstream, nil
+	}
+
+	return nil, nil
 }
 
 type EagerCacher struct {
@@ -46,8 +54,12 @@ func NewEagerCacher(backend CacheBackend, transport Transport, categorizer *Cate
 	return &EagerCacher{backend, transport, categorizer}
 }
 
+func (c *EagerCacher) shouldCache(req *http.Request) bool {
+	return c.categorizer.Stateless(req) && req.Header.Get(CacheHeader) == "eager"
+}
+
 func (c *EagerCacher) RoundTrip(req *http.Request) (*http.Response, error) {
-	if !c.categorizer.Stateless(req) {
+	if !c.shouldCache(req) {
 		upstream, err := c.tranpsort.RoundTrip(req)
 		return upstream, err
 	}

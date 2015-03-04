@@ -23,6 +23,10 @@ type Transport interface {
 	CancelRequest(req *http.Request)
 }
 
+type Fallback interface {
+	Fallback(*http.Request) (*http.Response, error)
+}
+
 type CacheBackend interface {
 	Set(req *http.Request, resp *http.Response)
 	Get(req *http.Request) (*http.Response, bool)

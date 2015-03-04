@@ -66,6 +66,18 @@ func (t *Upstream) Forward(res Responder, req *http.Request) error {
 	err := <-fin
 
 	if err == ErrTimeout {
+		if fb, ok := t.transport.(Fallback); ok {
+			upstream, err := fb.Fallback(req)
+			if err != nil {
+				return err
+			}
+
+			if upstream != nil {
+				CopyBody(res.Send(upstream), upstream.Body)
+				return nil
+			}
+		}
+
 		uperr := &http.Response{
 			Request:    req,
 			StatusCode: 504,

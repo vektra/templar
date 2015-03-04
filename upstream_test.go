@@ -54,5 +54,37 @@ func TestUpstream(t *testing.T) {
 		assert.Equal(t, 504, res.w.Code)
 	})
 
+	n.It("will invoke a transports fallback on timeout", func() {
+		req, err := http.NewRequest("GET", "http://google.com/foo/bar", nil)
+		require.NoError(t, err)
+
+		req.Header.Add("X-Templar-Timeout", "2s")
+
+		res := newRecordingSender()
+
+		timeout := NewUpstream(&slowTransportFallback{seconds: 10, fallback: true})
+
+		err = timeout.Forward(res, req)
+		require.NoError(t, err)
+
+		assert.Equal(t, 201, res.w.Code)
+	})
+
+	n.It("handles the fallback indicating there is no fallback", func() {
+		req, err := http.NewRequest("GET", "http://google.com/foo/bar", nil)
+		require.NoError(t, err)
+
+		req.Header.Add("X-Templar-Timeout", "2s")
+
+		res := newRecordingSender()
+
+		timeout := NewUpstream(&slowTransportFallback{seconds: 10, fallback: false})
+
+		err = timeout.Forward(res, req)
+		require.NoError(t, err)
+
+		assert.Equal(t, 504, res.w.Code)
+	})
+
 	n.Meow()
 }
