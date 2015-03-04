@@ -49,9 +49,7 @@ func TestUpstream(t *testing.T) {
 
 		req.Header.Set(CategoryHeader, "funky")
 
-		res := newRecordingSender()
-
-		upstream := NewUpstream(&mockTrans, &stats)
+		trans := &HTTPTransport{&mockTrans}
 
 		resp := &http.Response{
 			Request:    req,
@@ -64,10 +62,8 @@ func TestUpstream(t *testing.T) {
 
 		mockTrans.On("RoundTrip", exp).Return(resp, nil)
 
-		err = upstream.Forward(res, req)
+		_, err = trans.RoundTrip(req)
 		require.NoError(t, err)
-
-		assert.Equal(t, 304, res.w.Code)
 	})
 
 	n.It("will timeout a request if requested", func() {
