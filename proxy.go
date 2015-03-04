@@ -32,6 +32,8 @@ func (c *copyResonder) Send(res *http.Response) io.Writer {
 func (p *Proxy) ServeHTTP(res http.ResponseWriter, req *http.Request) {
 	start := time.Now()
 
+	p.stats.StartRequest(req)
+
 	p.client.Forward(&copyResonder{res}, req)
 
 	p.stats.Emit(req, time.Since(start))

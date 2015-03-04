@@ -15,7 +15,8 @@ type Client interface {
 }
 
 type Stats interface {
-	Emit(req *http.Request, dur time.Duration) error
+	StartRequest(req *http.Request)
+	Emit(req *http.Request, dur time.Duration)
 }
 
 type Transport interface {

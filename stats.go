@@ -9,9 +9,12 @@ import (
 
 type DebugStats struct{}
 
-func (d *DebugStats) Emit(req *http.Request, dur time.Duration) error {
-	fmt.Printf("[%s] %s => %s\n", req.Method, req.URL, dur)
-	return nil
+func (d *DebugStats) StartRequest(req *http.Request) {
+	fmt.Printf("[%s] S %s %s\n", time.Now(), req.Method, req.URL)
+}
+
+func (d *DebugStats) Emit(req *http.Request, dur time.Duration) {
+	fmt.Printf("[%s] E %s %s (%s)\n", time.Now(), req.Method, req.URL, dur)
 }
 
 type StatsdOutput struct {
@@ -36,4 +39,18 @@ func (s *StatsdOutput) StartRequest(req *http.Request) {
 func (s *StatsdOutput) Emit(req *http.Request, delta time.Duration) {
 	s.client.GaugeDelta("templar.requests.active", -1)
 	s.client.PrecisionTiming("templar.request.url."+s.url(req), delta)
+}
+
+type MultiStats []Stats
+
+func (m MultiStats) StartRequest(req *http.Request) {
+	for _, s := range m {
+		s.StartRequest(req)
+	}
+}
+
+func (m MultiStats) Emit(req *http.Request, t time.Duration) {
+	for _, s := range m {
+		s.Emit(req, t)
+	}
 }
