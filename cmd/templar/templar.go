@@ -18,6 +18,8 @@ var fMemcache = flag.String("memcache", "", "memcache servers to use for caching
 var fRedis = flag.String("redis", "", "redis server to use for caching")
 var fRedisPassword = flag.String("redis-password", "", "password to redis server")
 
+var fListen = flag.String("listen", "0.0.0.0:9224", "address to listen on")
+
 func main() {
 	flag.Parse()
 
@@ -60,5 +62,5 @@ func main() {
 
 	proxy := templar.NewProxy(collapse, stats)
 
-	http.ListenAndServe("127.0.0.1:9393", proxy)
+	http.ListenAndServe(*fListen, proxy)
 }
