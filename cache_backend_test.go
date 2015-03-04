@@ -12,15 +12,15 @@ import (
 	"github.com/vektra/neko"
 )
 
-func TestMemoryCacheBackend(t *testing.T) {
+func TestCache(t *testing.T) {
 	n := neko.Start(t)
 
 	var (
-		cache *MemoryCacheBackend
+		cache *Cache
 	)
 
 	n.Setup(func() {
-		cache = NewMemoryCacheBackend(30 * time.Second)
+		cache = NewMemoryCache(30 * time.Second)
 	})
 
 	n.It("can store and retrieve responses", func() {

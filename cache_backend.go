@@ -9,13 +9,25 @@ import (
 	"github.com/vektra/templar/cache"
 )
 
-type MemoryCacheBackend struct {
-	im cache.InMemoryCache
+type Cache struct {
+	c cache.Cache
 }
 
-func NewMemoryCacheBackend(expire time.Duration) *MemoryCacheBackend {
-	return &MemoryCacheBackend{
-		im: cache.NewInMemoryCache(expire),
+func NewMemoryCache(expire time.Duration) *Cache {
+	return &Cache{
+		c: cache.NewInMemoryCache(expire),
+	}
+}
+
+func NewMemcacheCache(hostlist []string, expire time.Duration) *Cache {
+	return &Cache{
+		c: cache.NewMemcachedCache(hostlist, expire),
+	}
+}
+
+func NewRedisCache(host string, password string, expire time.Duration) *Cache {
+	return &Cache{
+		c: cache.NewRedisCache(host, password, expire),
 	}
 }
 
@@ -24,7 +36,7 @@ type cachedRequest struct {
 	resp *http.Response
 }
 
-func (m *MemoryCacheBackend) Set(req *http.Request, resp *http.Response) error {
+func (m *Cache) Set(req *http.Request, resp *http.Response) error {
 	cr := &cachedRequest{}
 
 	if resp.Body != nil {
@@ -42,15 +54,15 @@ func (m *MemoryCacheBackend) Set(req *http.Request, resp *http.Response) error {
 
 	cr.resp = saved
 
-	m.im.Add(req.URL.String(), cr, 0)
+	m.c.Add(req.URL.String(), cr, 0)
 
 	return nil
 }
 
-func (m *MemoryCacheBackend) Get(req *http.Request) (*http.Response, bool) {
+func (m *Cache) Get(req *http.Request) (*http.Response, bool) {
 	var cr *cachedRequest
 
-	err := m.im.Get(req.URL.String(), &cr)
+	err := m.c.Get(req.URL.String(), &cr)
 
 	if err != nil {
 		return nil, false
