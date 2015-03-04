@@ -9,10 +9,9 @@ type MockStats struct {
 	mock.Mock
 }
 
-func (m *MockStats) Emit(req *http.Request, dur time.Duration) error {
-	ret := m.Called(req, dur)
-
-	r0 := ret.Error(0)
-
-	return r0
+func (m *MockStats) StartRequest(req *http.Request) {
+	m.Called(req)
+}
+func (m *MockStats) Emit(req *http.Request, dur time.Duration) {
+	m.Called(req, dur)
 }
