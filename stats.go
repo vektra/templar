@@ -56,6 +56,8 @@ func (s *StatsdOutput) RequestTimeout(req *http.Request, timeout time.Duration) 
 
 type MultiStats []Stats
 
+var _ = Stats(MultiStats{})
+
 func (m MultiStats) StartRequest(req *http.Request) {
 	for _, s := range m {
 		s.StartRequest(req)
@@ -65,5 +67,11 @@ func (m MultiStats) StartRequest(req *http.Request) {
 func (m MultiStats) Emit(req *http.Request, t time.Duration) {
 	for _, s := range m {
 		s.Emit(req, t)
+	}
+}
+
+func (m MultiStats) RequestTimeout(req *http.Request, timeout time.Duration) {
+	for _, s := range m {
+		s.RequestTimeout(req, timeout)
 	}
 }

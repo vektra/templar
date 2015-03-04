@@ -55,7 +55,7 @@ func main() {
 	fallback := templar.NewFallbackCacher(cache, transport, categorizer)
 	eager := templar.NewEagerCacher(cache, fallback, categorizer)
 
-	upstream := templar.NewUpstream(eager)
+	upstream := templar.NewUpstream(eager, stats)
 	collapse := templar.NewCollapser(upstream, categorizer)
 
 	proxy := templar.NewProxy(collapse, stats)
