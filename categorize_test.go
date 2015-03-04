@@ -30,5 +30,27 @@ func TestCategorize(t *testing.T) {
 		assert.False(t, cat.Stateless(req))
 	})
 
+	n.It("honors a header to override behavior on be stateful", func() {
+		req, err := http.NewRequest("GET", "http://google.com/foo/bar", nil)
+		require.NoError(t, err)
+
+		req.Header.Add(CategoryHeader, "stateful")
+
+		cat := NewCategorizer()
+
+		assert.False(t, cat.Stateless(req))
+	})
+
+	n.It("honors a header to override behavior to be stateless", func() {
+		req, err := http.NewRequest("POST", "http://google.com/foo/bar", nil)
+		require.NoError(t, err)
+
+		req.Header.Add(CategoryHeader, "stateless")
+
+		cat := NewCategorizer()
+
+		assert.True(t, cat.Stateless(req))
+	})
+
 	n.Meow()
 }
