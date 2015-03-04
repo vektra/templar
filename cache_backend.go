@@ -37,13 +37,13 @@ type cachedRequest struct {
 	headers http.Header
 }
 
-func (m *Cache) Set(req *http.Request, resp *http.Response) error {
+func (m *Cache) Set(req *http.Request, resp *http.Response) {
 	cr := &cachedRequest{}
 
 	if resp.Body != nil {
 		body, err := ioutil.ReadAll(resp.Body)
 		if err != nil {
-			return err
+			return
 		}
 
 		cr.body = body
@@ -54,8 +54,6 @@ func (m *Cache) Set(req *http.Request, resp *http.Response) error {
 	cr.headers = resp.Header
 
 	m.c.Add(req.URL.String(), cr, 0)
-
-	return nil
 }
 
 func (m *Cache) Get(req *http.Request) (*http.Response, bool) {

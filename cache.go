@@ -4,10 +4,12 @@ import "net/http"
 
 type FallbackCacher struct {
 	backend   CacheBackend
-	tranpsort Transport
+	transport Transport
 
 	categorizer *Categorizer
 }
+
+var _ = Transport(&FallbackCacher{})
 
 func NewFallbackCacher(backend CacheBackend, transport Transport, categorizer *Categorizer) *FallbackCacher {
 	return &FallbackCacher{backend, transport, categorizer}
@@ -20,7 +22,7 @@ func (c *FallbackCacher) shouldCache(req *http.Request) bool {
 }
 
 func (c *FallbackCacher) RoundTrip(req *http.Request) (*http.Response, error) {
-	upstream, err := c.tranpsort.RoundTrip(req)
+	upstream, err := c.transport.RoundTrip(req)
 
 	if !c.shouldCache(req) {
 		return upstream, err
@@ -43,12 +45,18 @@ func (c *FallbackCacher) Fallback(req *http.Request) (*http.Response, error) {
 	return nil, nil
 }
 
+func (c *FallbackCacher) CancelRequest(req *http.Request) {
+	c.transport.CancelRequest(req)
+}
+
 type EagerCacher struct {
 	backend   CacheBackend
-	tranpsort Transport
+	transport Transport
 
 	categorizer *Categorizer
 }
+
+var _ = Transport(&EagerCacher{})
 
 func NewEagerCacher(backend CacheBackend, transport Transport, categorizer *Categorizer) *EagerCacher {
 	return &EagerCacher{backend, transport, categorizer}
@@ -60,7 +68,7 @@ func (c *EagerCacher) shouldCache(req *http.Request) bool {
 
 func (c *EagerCacher) RoundTrip(req *http.Request) (*http.Response, error) {
 	if !c.shouldCache(req) {
-		upstream, err := c.tranpsort.RoundTrip(req)
+		upstream, err := c.transport.RoundTrip(req)
 		return upstream, err
 	}
 
@@ -68,7 +76,7 @@ func (c *EagerCacher) RoundTrip(req *http.Request) (*http.Response, error) {
 		return upstream, nil
 	}
 
-	upstream, err := c.tranpsort.RoundTrip(req)
+	upstream, err := c.transport.RoundTrip(req)
 	if err != nil {
 		return nil, err
 	}
@@ -76,4 +84,8 @@ func (c *EagerCacher) RoundTrip(req *http.Request) (*http.Response, error) {
 	c.backend.Set(req, upstream)
 
 	return upstream, nil
+}
+
+func (c *EagerCacher) CancelRequest(req *http.Request) {
+	c.transport.CancelRequest(req)
 }
