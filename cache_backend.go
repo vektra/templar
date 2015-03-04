@@ -32,8 +32,9 @@ func NewRedisCache(host string, password string, expire time.Duration) *Cache {
 }
 
 type cachedRequest struct {
-	body []byte
-	resp *http.Response
+	body    []byte
+	status  int
+	headers http.Header
 }
 
 func (m *Cache) Set(req *http.Request, resp *http.Response) error {
@@ -49,10 +50,8 @@ func (m *Cache) Set(req *http.Request, resp *http.Response) error {
 		resp.Body = ioutil.NopCloser(bytes.NewReader(body))
 	}
 
-	saved := &http.Response{}
-	*saved = *resp
-
-	cr.resp = saved
+	cr.status = resp.StatusCode
+	cr.headers = resp.Header
 
 	m.c.Add(req.URL.String(), cr, 0)
 
@@ -68,11 +67,12 @@ func (m *Cache) Get(req *http.Request) (*http.Response, bool) {
 		return nil, false
 	}
 
-	saved := &http.Response{}
+	resp := &http.Response{
+		StatusCode: cr.status,
+		Header:     cr.headers,
+	}
 
-	*saved = *cr.resp
+	resp.Body = ioutil.NopCloser(bytes.NewReader(cr.body))
 
-	saved.Body = ioutil.NopCloser(bytes.NewReader(cr.body))
-
-	return saved, true
+	return resp, true
 }
