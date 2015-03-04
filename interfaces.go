@@ -15,7 +15,7 @@ type Client interface {
 }
 
 type Stats interface {
-	Emit(res http.ResponseWriter, req *http.Request, dur time.Duration) error
+	Emit(req *http.Request, dur time.Duration) error
 }
 
 type Transport interface {
@@ -34,4 +34,10 @@ type CacheBackend interface {
 
 type Finisher interface {
 	Finish()
+}
+
+type StatsdClient interface {
+	Incr(name string, count int64) error
+	GaugeDelta(name string, delta int64) error
+	PrecisionTiming(name string, t time.Duration) error
 }

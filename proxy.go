@@ -34,5 +34,5 @@ func (p *Proxy) ServeHTTP(res http.ResponseWriter, req *http.Request) {
 
 	p.client.Forward(&copyResonder{res}, req)
 
-	p.stats.Emit(res, req, time.Since(start))
+	p.stats.Emit(req, time.Since(start))
 }

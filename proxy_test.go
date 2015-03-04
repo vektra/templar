@@ -33,7 +33,7 @@ func TestProxy(t *testing.T) {
 		res := httptest.NewRecorder()
 
 		client.On("Forward", mock.Anything, req).Return(nil)
-		stats.On("Emit", res, req, mock.Anything).Return(nil)
+		stats.On("Emit", req, mock.Anything).Return(nil)
 
 		proxy.ServeHTTP(res, req)
 	})

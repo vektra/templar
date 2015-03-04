@@ -9,8 +9,8 @@ type MockStats struct {
 	mock.Mock
 }
 
-func (m *MockStats) Emit(res http.ResponseWriter, req *http.Request, dur time.Duration) error {
-	ret := m.Called(res, req, dur)
+func (m *MockStats) Emit(req *http.Request, dur time.Duration) error {
+	ret := m.Called(req, dur)
 
 	r0 := ret.Error(0)
 
