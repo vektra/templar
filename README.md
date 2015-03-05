@@ -65,6 +65,16 @@ The later 2 are used only if configure on the command line.
 In the future, the plan is to name the caches and allow requests to say which
 caching backend they'd like to use. Currently they all use the same one.
 
+### Stats generation
+
+Tracking what APIs are used and how well they're performing is critical to
+understanding. When requests flow through templar, it can generate metrics
+about those requests and send them to statsd.
+
+Just specify a statsd host via `-statsd` and templar will start sending them.
+
+We'll support more metrics backends in the future.
+
 ## Request categorization
 
 Not all requests should use some of these features, for instance, request collapsing.
