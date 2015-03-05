@@ -85,6 +85,48 @@ Again, a stateless request is subject to the following additional handling:
 
 A number of headers take time durations, for instances, 30 seconds. These uses the simple "(number)(unit)" parser, so for 1 second, use `1s` and 5 minutes use `5m`. Units supported are: `ns`, `us`, `ms`, `s`, `m`, and `h`.
 
+## Control Headers
+
+Templar uses a number of headers to control how the requests are processed.
+
+### X-Templar-Cache
+
+Possible values:
+
+* **eager**: Return a value from the cache before checking upstream
+* **fallback**: Return a value from the cache only if the upstream has issues
+
+### X-Templar-CacheFor
+
+When caching, how long to cache the value for. If caching and this isn't set,
+the default is used.
+
+### X-Templar-Cached
+
+Set on responses that are served from the cache.
+
+### X-Templar-Category
+
+Possible values:
+
+* **stateless**: Process the request as stateless
+* **stateful**: Process the request as stateful
+
+### X-Templar-Timeout
+
+Specifies how long to wait for the response before giving up.
+
+### X-Templar-TimedOut
+
+Set to `true` on a response when the request timed out.
+
+### X-Templar-Upgrade
+
+Possible values:
+
+* **https**: When connecting to the upstream, switch to https
+
+
 # Future features
 
 * Automatic caching based on HTTP Expire headers
@@ -92,3 +134,5 @@ A number of headers take time durations, for instances, 30 seconds. These uses t
 * Multiple active caching backends
 * Internal cluster caching via groupcache
 * Request stream inspection
+* Fire-and-forget requests
+* Return response via AMQP
