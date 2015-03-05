@@ -33,11 +33,15 @@ to easily send requests through it. Various languages have different HTTP client
 but many respect the `http_proxy` environment variable that you can set to the
 address templar is running on.
 
+Most HTTP clients in various programming languages have some configuration
+to configure the proxy directly as well. Nearly all of them do, just check
+the docs.
+
 ### HTTPS
 
 Many HTTP APIs located in SaaS products are available only via HTTPS. This is a
 good thing though it makes templar's job a little harder. We don't want to a client
-to use CONNECT because then we can't any value. So to interact with these APIs,
+to use CONNECT because then we can't provide any value. So to interact with these APIs,
 use the `X-Templar-Upgrade` header. Configure your client to talk to the API
 as normal http but include `X-Templar-Upgrade: https` and templar will be able
 manage your requests and still talk to the https service!
