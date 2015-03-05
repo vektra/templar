@@ -26,6 +26,11 @@ Directly via go: `go get github.com/vektra/templar/cmd/templar`
 
 * [amd64](https://bintray.com/artifact/download/evanphx/templar/templar-darwin-amd64.tar.gz)
 
+### Windows
+
+* [i386](https://bintray.com/artifact/download/evanphx/templar/templar-windows-386.zip)
+* [amd64](https://bintray.com/artifact/download/evanphx/templar/templar-windows-amd64.zip)
+
 ## Usage
 
 templar functions like an HTTP proxy, allowing you use your favorite HTTP client
