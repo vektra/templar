@@ -10,15 +10,15 @@ import (
 type DebugStats struct{}
 
 func (d *DebugStats) StartRequest(req *http.Request) {
-	fmt.Printf("[%s] S %s %s\n", time.Now(), req.Method, req.URL)
+	fmt.Printf("[%s] S %s %s\n", time.Now().Format(time.RFC3339Nano), req.Method, req.URL)
 }
 
 func (d *DebugStats) Emit(req *http.Request, dur time.Duration) {
-	fmt.Printf("[%s] E %s %s (%s)\n", time.Now(), req.Method, req.URL, dur)
+	fmt.Printf("[%s] E %s %s (%s)\n", time.Now().Format(time.RFC3339Nano), req.Method, req.URL, dur)
 }
 
 func (d *DebugStats) RequestTimeout(req *http.Request, timeout time.Duration) {
-	fmt.Printf("[%s] T %s %s (%s)\n", time.Now(), req.Method, req.URL, timeout)
+	fmt.Printf("[%s] T %s %s (%s)\n", time.Now().Format(time.RFC3339Nano), req.Method, req.URL, timeout)
 }
 
 var _ = Stats(&DebugStats{})
