@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	"log"
 	"net/http"
 	"strings"
 	"time"
@@ -62,5 +63,5 @@ func main() {
 
 	proxy := templar.NewProxy(collapse, stats)
 
-	http.ListenAndServe(*fListen, proxy)
+	log.Fatal(http.ListenAndServe(*fListen, proxy))
 }
