@@ -43,29 +43,6 @@ func TestUpstream(t *testing.T) {
 		assert.Equal(t, 304, res.w.Code)
 	})
 
-	n.It("does not send templar headers", func() {
-		req, err := http.NewRequest("GET", "http://google.com/foo/bar", nil)
-		require.NoError(t, err)
-
-		req.Header.Set(CategoryHeader, "funky")
-
-		trans := &HTTPTransport{&mockTrans}
-
-		resp := &http.Response{
-			Request:    req,
-			StatusCode: 304,
-			Status:     "304 Too Funky",
-		}
-
-		exp, err := http.NewRequest("GET", "http://google.com/foo/bar", nil)
-		require.NoError(t, err)
-
-		mockTrans.On("RoundTrip", exp).Return(resp, nil)
-
-		_, err = trans.RoundTrip(req)
-		require.NoError(t, err)
-	})
-
 	n.It("will timeout a request if requested", func() {
 		req, err := http.NewRequest("GET", "http://google.com/foo/bar", nil)
 		require.NoError(t, err)

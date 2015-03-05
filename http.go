@@ -1,13 +1,15 @@
 package templar
 
 import (
-	"fmt"
 	"io"
 	"net"
 	"net/http"
+	"net/url"
 	"strings"
 	"time"
 )
+
+const UpgradeHeader = "X-Templar-Upgrade"
 
 func NewHTTPTransport() Transport {
 	return &HTTPTransport{
@@ -29,10 +31,21 @@ func (h *HTTPTransport) RoundTrip(req *http.Request) (*http.Response, error) {
 	out := &http.Request{}
 	*out = *req
 
+	out.RequestURI = ""
+
 	out.Header = make(http.Header)
 
 	for k, v := range req.Header {
 		if strings.HasPrefix(k, TemplarPrefix) {
+			if k == UpgradeHeader && v[0] == "https" {
+				u := &url.URL{}
+				*u = *out.URL
+
+				u.Scheme = "https"
+
+				out.URL = u
+			}
+
 			continue
 		}
 
@@ -53,7 +66,6 @@ func CopyResponse(res http.ResponseWriter, upstream *http.Response) {
 
 	res.WriteHeader(upstream.StatusCode)
 	if upstream.Body != nil {
-		fmt.Printf("copy upstream... %#v\n", upstream.Body)
 		io.Copy(res, upstream.Body)
 		upstream.Body.Close()
 	}
