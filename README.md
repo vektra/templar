@@ -1,6 +1,8 @@
 templar
 =======
 
+[![Build Status](https://travis-ci.org/vektra/templar.svg?branch=master)](https://travis-ci.org/vektra/templar)
+
 HTTP APIs, they're everywhere. But they have a serious problem: their
 sychronous nature means that code using them stalls while waiting
 for a reply.
