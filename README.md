@@ -5,7 +5,7 @@ HTTP APIs, they're everywhere. But they have a serious problem: their
 sychronous nature means that code using them stalls while waiting
 for a reply.
 
-This means that your apps uptime and reliability and intertwinned with
+This means that your apps uptime and reliability are intertwined with
 whatever HTTP APIs, especially SaaS ones, you use.
 
 templar helps you control the problem.
@@ -17,8 +17,8 @@ better use of and tame HTTP APIs.
 
 ### Timeouts
 
-It's important when accessing a synchronous API like an HTTP endpoint
-that timeouts are used. It's not uncommon for upstream APIs to have no
+It's important that timeouts are used when accessing a synchronous API like an 
+HTTP endpoint. It's not uncommon for upstream APIs to have no
 timeouts to fulfill a request so that typically needs to be done on the client
 side. Effect use of timeouts on these APIs will improve the robustness
 of your own system.
