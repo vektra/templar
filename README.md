@@ -13,6 +13,19 @@ templar helps you control the problem.
 It is a an HTTP proxy that provides advanced features to help you make
 better use of and tame HTTP APIs.
 
+## Installation
+
+Directly via go: `go get github.com/vektra/templar/cmd/templar`
+
+### Linux
+
+* [i386](https://bintray.com/artifact/download/evanphx/templar/templar-linux-386.tar.gz)
+* [amd64](https://bintray.com/artifact/download/evanphx/templar/templar-linux-amd64.tar.gz)
+
+### Darwin
+
+* [amd64](https://bintray.com/artifact/download/evanphx/templar/templar-darwin-amd64.tar.gz)
+
 ## Features
 
 ### Timeouts
