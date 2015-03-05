@@ -26,11 +26,39 @@ Directly via go: `go get github.com/vektra/templar/cmd/templar`
 
 * [amd64](https://bintray.com/artifact/download/evanphx/templar/templar-darwin-amd64.tar.gz)
 
+## Usage
+
+templar functions like an HTTP proxy, allowing you use your favorite HTTP client
+to easily send requests through it. Various languages have different HTTP clients
+but many respect the `http_proxy` environment variable that you can set to the
+address templar is running on.
+
+### HTTPS
+
+Many HTTP APIs located in SaaS products are available only via HTTPS. This is a
+good thing though it makes templar's job a little harder. We don't want to a client
+to use CONNECT because then we can't any value. So to interact with these APIs,
+use the `X-Templar-Upgrade` header. Configure your client to talk to the API
+as normal http but include `X-Templar-Upgrade: https` and templar will be able
+manage your requests and still talk to the https service!
+
+### Examples
+
+Do a request through templar, no timeout, no caching:
+
+`curl -x http://localhost:9224 http://api.openweathermap.org/data/2.5/weather?q=Los+Angeles,CA`
+
+
+Now add some caching in, caching the value for a minute at a time:
+
+`curl -x http://localhost:9224 -H "X-Templar-Cache: eager" -H "X-Templar-CacheFor: 1m" 'http://api.openweathermap.org/data/2.5/weather?q=Los+Angeles,CA'`
+
+
 ## Features
 
 ### Timeouts
 
-It's important that timeouts are used when accessing a synchronous API like an 
+It's important that timeouts are used when accessing a synchronous API like an
 HTTP endpoint. It's not uncommon for upstream APIs to have no
 timeouts to fulfill a request so that typically needs to be done on the client
 side. Effect use of timeouts on these APIs will improve the robustness
