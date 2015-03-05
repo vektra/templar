@@ -1,3 +1,5 @@
+// +build memcache
+
 package cache
 
 import (
