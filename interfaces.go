@@ -4,6 +4,7 @@ import (
 	"io"
 	"net/http"
 	"time"
+	"github.com/amir/raidman"
 )
 
 type Responder interface {
@@ -42,4 +43,8 @@ type StatsdClient interface {
 	Incr(name string, count int64) error
 	GaugeDelta(name string, delta int64) error
 	PrecisionTiming(name string, t time.Duration) error
+}
+
+type RiemannClient interface {
+    Send(* raidman.Event) error
 }
