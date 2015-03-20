@@ -2,6 +2,7 @@ package templar
 
 import (
 	"fmt"
+	"github.com/amir/raidman"
 	"net/http"
 	"strings"
 	"time"
@@ -52,6 +53,56 @@ func (s *StatsdOutput) Emit(req *http.Request, delta time.Duration) {
 func (s *StatsdOutput) RequestTimeout(req *http.Request, timeout time.Duration) {
 	s.client.Incr("templar.timeout.host."+req.Host, 1)
 	s.client.Incr("templar.timeout.url."+s.url(req), 1)
+}
+
+type RiemannOutput struct {
+	client RiemannClient
+}
+
+func NewRiemannOutput(client RiemannClient) *RiemannOutput {
+	return &RiemannOutput{client}
+}
+
+func (r *RiemannOutput) StartRequest(req *http.Request) {
+	attributes := make(map[string]string)
+	attributes["method"] = req.Method
+	attributes["host"] = req.Host
+	attributes["path"] = req.URL.Path
+	var event = &raidman.Event{
+		State:      "ok",
+		Service:    "templar request",
+		Metric:     1,
+		Attributes: attributes,
+	}
+	r.client.Send(event)
+}
+
+func (r *RiemannOutput) Emit(req *http.Request, delta time.Duration) {
+	attributes := make(map[string]string)
+	attributes["method"] = req.Method
+	attributes["host"] = req.Host
+	attributes["path"] = req.URL.Path
+	var event = &raidman.Event{
+		State:      "ok",
+		Service:    "templar response",
+		Metric:     1000.0 * delta.Seconds(),
+		Attributes: attributes,
+	}
+	r.client.Send(event)
+}
+
+func (r *RiemannOutput) RequestTimeout(req *http.Request, timeout time.Duration) {
+	attributes := make(map[string]string)
+	attributes["method"] = req.Method
+	attributes["host"] = req.Host
+	attributes["path"] = req.URL.Path
+	var event = &raidman.Event{
+		State:      "warning",
+		Service:    "templar timeout",
+		Metric:     timeout.Seconds() * 1000.0,
+		Attributes: attributes,
+	}
+	r.client.Send(event)
 }
 
 type MultiStats []Stats

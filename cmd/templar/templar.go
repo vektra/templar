@@ -7,12 +7,14 @@ import (
 	"strings"
 	"time"
 
+	"github.com/amir/raidman"
 	"github.com/quipo/statsd"
 	"github.com/vektra/templar"
 )
 
 var fDebug = flag.Bool("debug", false, "show debugging info")
 var fStatsd = flag.String("statsd", "", "address to sends statsd stats")
+var fRiemann = flag.String("riemann", "", "address to sends riemann stats over tcp (e.g. localhost:5555)")
 var fExpire = flag.Duration("expire", 5*time.Minute, "how long to use cached values")
 
 var fMemcache = flag.String("memcache", "", "memcache servers to use for caching")
@@ -38,6 +40,15 @@ func main() {
 		}
 
 		stats = append(stats, templar.NewStatsdOutput(client))
+	}
+
+	if *fRiemann != "" {
+		client, err := raidman.Dial("tcp", *fRiemann)
+		if err != nil {
+			panic(err)
+		}
+
+		stats = append(stats, templar.NewRiemannOutput(client))
 	}
 
 	categorizer := templar.NewCategorizer()
