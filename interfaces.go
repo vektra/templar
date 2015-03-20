@@ -1,10 +1,10 @@
 package templar
 
 import (
+	"github.com/amir/raidman"
 	"io"
 	"net/http"
 	"time"
-	"github.com/amir/raidman"
 )
 
 type Responder interface {
@@ -46,5 +46,5 @@ type StatsdClient interface {
 }
 
 type RiemannClient interface {
-    Send(* raidman.Event) error
+	Send(*raidman.Event) error
 }
