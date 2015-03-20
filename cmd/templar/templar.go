@@ -14,7 +14,7 @@ import (
 
 var fDebug = flag.Bool("debug", false, "show debugging info")
 var fStatsd = flag.String("statsd", "", "address to sends statsd stats")
-var fRiemann = flag.String("riemann", "", "address to sends riemann stats")
+var fRiemann = flag.String("riemann", "", "address to sends riemann stats over tcp (e.g. localhost:5555)")
 var fExpire = flag.Duration("expire", 5*time.Minute, "how long to use cached values")
 
 var fMemcache = flag.String("memcache", "", "memcache servers to use for caching")
