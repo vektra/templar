@@ -18,6 +18,7 @@ var fExpire = flag.Duration("expire", 5*time.Minute, "how long to use cached val
 var fMemcache = flag.String("memcache", "", "memcache servers to use for caching")
 var fRedis = flag.String("redis", "", "redis server to use for caching")
 var fRedisPassword = flag.String("redis-password", "", "password to redis server")
+var fGroupCache = flag.String("groupcache", "", "groupcache peer url set to use for caching")
 
 var fListen = flag.String("listen", "0.0.0.0:9224", "address to listen on")
 
@@ -51,6 +52,8 @@ func main() {
 		cache = templar.NewMemcacheCache(strings.Split(*fMemcache, ":"), *fExpire)
 	case *fRedis != "":
 		cache = templar.NewRedisCache(*fRedis, *fRedisPassword, *fExpire)
+    case *fGroupCache != "":
+        cache = templar.NewGroupCacheCache(*fGroupCache, *fExpire)
 	default:
 		cache = templar.NewMemoryCache(*fExpire)
 	}
