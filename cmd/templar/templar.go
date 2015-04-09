@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"flag"
 	"log"
 	"net/http"
@@ -18,7 +19,8 @@ var fExpire = flag.Duration("expire", 5*time.Minute, "how long to use cached val
 var fMemcache = flag.String("memcache", "", "memcache servers to use for caching")
 var fRedis = flag.String("redis", "", "redis server to use for caching")
 var fRedisPassword = flag.String("redis-password", "", "password to redis server")
-var fGroupCache = flag.String("groupcache", "", "groupcache peer url set to use for caching")
+var fGroupCacheThisPeer = flag.String("groupcache-this-peer", "", "groupcache peer url to use for this peer")
+var fGroupCacheOtherPeers = flag.String("groupcache-other-peers", "", "groupcache peer url set to use for caching (comma separated)")
 
 var fListen = flag.String("listen", "0.0.0.0:9224", "address to listen on")
 
@@ -52,8 +54,12 @@ func main() {
 		cache = templar.NewMemcacheCache(strings.Split(*fMemcache, ":"), *fExpire)
 	case *fRedis != "":
 		cache = templar.NewRedisCache(*fRedis, *fRedisPassword, *fExpire)
-    case *fGroupCache != "":
-        cache = templar.NewGroupCacheCache(*fGroupCache, *fExpire)
+	case *fGroupCacheThisPeer != "" && *fGroupCacheOtherPeers != "":
+		cache = templar.NewGroupCacheCache(*fGroupCacheThisPeer, *fGroupCacheOtherPeers, *fExpire, transport)
+	case *fGroupCacheThisPeer != "" && *fGroupCacheOtherPeers == "":
+		panic(errors.New("templar: passed --groupcache-this-peer without passing --groupcache-other-peers. You have to set both of them to use the group cache backend"))
+	case *fGroupCacheThisPeer == "" && *fGroupCacheOtherPeers != "":
+		panic(errors.New("templar: passed --groupcache-other-peers without passing --groupcache-this-peer. You have to set both of them to use the group cache backend"))
 	default:
 		cache = templar.NewMemoryCache(*fExpire)
 	}

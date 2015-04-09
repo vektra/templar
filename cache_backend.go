@@ -31,8 +31,8 @@ func NewRedisCache(host string, password string, expire time.Duration) *Cache {
 	}
 }
 
-func NewGroupCacheCache(urls string, defaultExpiration time.Duration) *cache.GroupCacheCache {
-	return cache.NewGroupCacheCache(urls, defaultExpiration)
+func NewGroupCacheCache(thisPeerURL string, otherPeersURLs string, defaultExpiration time.Duration, transport Transport) *cache.GroupCacheCache {
+	return cache.NewGroupCacheCache(thisPeerURL, otherPeersURLs, defaultExpiration, transport)
 }
 
 type cachedRequest struct {
