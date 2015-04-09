@@ -6,8 +6,13 @@ import (
 	"github.com/golang/groupcache"
 	"io/ioutil"
 	"net/http"
+	"strconv"
 	"strings"
 	"time"
+)
+
+const (
+	CacheTimeHeader = "X-Templar-CacheFor"
 )
 
 type Transport interface {
@@ -67,9 +72,24 @@ func (c *GroupCacheCache) Set(req *http.Request, resp *http.Response) {
 	// to an underlying http transport
 }
 
+func calculateEpochedKey(req *http.Request, now time.Time) string {
+	expires := FOREVER
+	if reqExpire := req.Header.Get(CacheTimeHeader); reqExpire != "" {
+		if dur, err := time.ParseDuration(reqExpire); err == nil {
+			expires = dur
+		}
+	}
+	if expires != FOREVER {
+		return req.URL.String() + strconv.Itoa(int(now.Round(expires).Unix()))
+	} else {
+		return req.URL.String()
+	}
+}
+
 func (c *GroupCacheCache) Get(req *http.Request) (*http.Response, bool) {
 	var data []byte
-	err := c.g.Get(req, req.URL.Path, groupcache.AllocatingByteSliceSink(&data))
+	key := calculateEpochedKey(req, time.Now())
+	err := c.g.Get(req, key, groupcache.AllocatingByteSliceSink(&data))
 	if err != nil {
 		return nil, false
 	} else {
