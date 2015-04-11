@@ -12,7 +12,9 @@ import (
 )
 
 const (
-	CacheTimeHeader = "X-Templar-CacheFor"
+	CacheHeader              = "X-Templar-Cache"
+	CacheTimeHeader          = "X-Templar-CacheFor"
+	notRedoingRequestMessage = "not redoing a request on a fallback cache lookup"
 )
 
 type Transport interface {
@@ -41,6 +43,9 @@ func NewGroupCacheCache(thisPeerAddress string, otherPeersURLs string, defaultEx
 			return errors.New("failed to cast groupcache context to an http request")
 		}
 
+		if !shouldCache(req) {
+			return errors.New(notRedoingRequestMessage)
+		}
 		upstream, err := transport.RoundTrip(req)
 		if err != nil {
 			return err
@@ -113,4 +118,8 @@ func (c *GroupCacheCache) Get(req *http.Request) (*http.Response, bool) {
 
 		return resp, true
 	}
+}
+
+func shouldCache(req *http.Request) bool {
+	return req.Header.Get(CacheHeader) == "fallback"
 }
