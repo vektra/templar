@@ -21,6 +21,7 @@ var fRedis = flag.String("redis", "", "redis server to use for caching")
 var fRedisPassword = flag.String("redis-password", "", "password to redis server")
 var fGroupCacheThisPeer = flag.String("groupcache-this-peer", "", "groupcache peer url to use for this peer")
 var fGroupCacheOtherPeers = flag.String("groupcache-other-peers", "", "groupcache peer url set to use for caching (comma separated)")
+var fGroupCacheMemoryLimit = flag.Int("groupcache-other-peers", 64<<20, "the memory limit to pass to groupcache. Defaults to 64mb")
 
 var fListen = flag.String("listen", "0.0.0.0:9224", "address to listen on")
 
@@ -55,7 +56,7 @@ func main() {
 	case *fRedis != "":
 		cache = templar.NewRedisCache(*fRedis, *fRedisPassword, *fExpire)
 	case *fGroupCacheThisPeer != "" && *fGroupCacheOtherPeers != "":
-		cache = templar.NewGroupCacheCache(*fGroupCacheThisPeer, *fGroupCacheOtherPeers, *fExpire, transport)
+		cache = templar.NewGroupCacheCache(*fGroupCacheThisPeer, *fGroupCacheOtherPeers, *fExpire, int64(*fGroupCacheMemoryLimit), transport)
 	case *fGroupCacheThisPeer != "" && *fGroupCacheOtherPeers == "":
 		panic(errors.New("templar: passed --groupcache-this-peer without passing --groupcache-other-peers. You have to set both of them to use the group cache backend"))
 	case *fGroupCacheThisPeer == "" && *fGroupCacheOtherPeers != "":

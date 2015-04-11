@@ -30,7 +30,7 @@ type cachedResponse struct {
 	Headers http.Header
 }
 
-func NewGroupCacheCache(thisPeerAddress string, otherPeersURLs string, defaultExpiration time.Duration, transport Transport) *GroupCacheCache {
+func NewGroupCacheCache(thisPeerAddress string, otherPeersURLs string, defaultExpiration time.Duration, memoryLimit int64, transport Transport) *GroupCacheCache {
 	data := []string{"http://" + thisPeerAddress}
 	otherPeers := append(data, strings.Split(otherPeersURLs, ",")...)
 	pool := groupcache.NewHTTPPool("http://" + thisPeerAddress)
@@ -62,7 +62,7 @@ func NewGroupCacheCache(thisPeerAddress string, otherPeersURLs string, defaultEx
 		destination.SetBytes(b)
 		return nil
 	}
-	group := groupcache.NewGroup("templar", 64<<20, groupcache.GetterFunc(getter))
+	group := groupcache.NewGroup("templar", memoryLimit, groupcache.GetterFunc(getter))
 	go func() {
 		http.ListenAndServe(thisPeerAddress, http.HandlerFunc(pool.ServeHTTP))
 	}()
