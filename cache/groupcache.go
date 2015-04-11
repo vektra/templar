@@ -30,9 +30,10 @@ type cachedResponse struct {
 	Headers http.Header
 }
 
-func NewGroupCacheCache(thisPeerURL string, otherPeersURLs string, defaultExpiration time.Duration, transport Transport) *GroupCacheCache {
-	otherPeers := strings.Split(otherPeersURLs, ",")
-	pool := groupcache.NewHTTPPool(thisPeerURL)
+func NewGroupCacheCache(thisPeerAddress string, otherPeersURLs string, defaultExpiration time.Duration, transport Transport) *GroupCacheCache {
+	data := []string{"http://" + thisPeerAddress}
+	otherPeers := append(data, strings.Split(otherPeersURLs, ",")...)
+	pool := groupcache.NewHTTPPool("http://" + thisPeerAddress)
 	pool.Set(otherPeers...)
 	getter := func(context groupcache.Context, k string, destination groupcache.Sink) error {
 		req, ok := context.(*http.Request)
@@ -62,6 +63,9 @@ func NewGroupCacheCache(thisPeerURL string, otherPeersURLs string, defaultExpira
 		return nil
 	}
 	group := groupcache.NewGroup("templar", 64<<20, groupcache.GetterFunc(getter))
+	go func() {
+		http.ListenAndServe(thisPeerAddress, http.HandlerFunc(pool.ServeHTTP))
+	}()
 	return &GroupCacheCache{*group, transport}
 }
 
@@ -79,10 +83,12 @@ func calculateEpochedKey(req *http.Request, now time.Time) string {
 			expires = dur
 		}
 	}
-	if expires != FOREVER {
-		return req.URL.String() + strconv.Itoa(int(now.Round(expires).Unix()))
-	} else {
+	if expires == FOREVER {
 		return req.URL.String()
+	} else {
+		return strconv.Itoa(int(now.Truncate(expires).Unix())) +
+			"-" +
+			req.URL.String()
 	}
 }
 
