@@ -145,7 +145,7 @@ Again, a stateless request is subject to the following additional handling:
 
 ## Duration format
 
-A number of headers take time durations, for instances, 30 seconds. These uses the simple "(number)(unit)" parser, so for 1 second, use `1s` and 5 minutes use `5m`. Units supported are: `ns`, `us`, `ms`, `s`, `m`, and `h`.
+A number of headers take time durations, for instances, 30 seconds. These use the simple "(number)(unit)" parser, so for 1 second, use `1s` and 5 minutes use `5m`. Units supported are: `ns`, `us`, `ms`, `s`, `m`, and `h`.
 
 ## Control Headers
 
