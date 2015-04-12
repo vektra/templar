@@ -106,13 +106,14 @@ from the endpoint when needed.
 The `X-Templar-CacheFor` header time is used to control how long a cached
 value will be used for. See Duration format below for how to specify the time.
 
-There are 3 caches available presently:
+There are 4 caches available presently:
 
 * Memory (the default)
 * Memcache
 * Redis
+* Groupcache
 
-The later 2 are used only if configure on the command line.
+The later 3 are used only if configure on the command line.
 
 In the future, the plan is to name the caches and allow requests to say which
 caching backend they'd like to use. Currently they all use the same one.
@@ -194,7 +195,6 @@ Possible values:
 * Automatic caching based on HTTP Expire headers
 * Request throttling
 * Multiple active caching backends
-* Internal cluster caching via groupcache
 * Request stream inspection
 * Fire-and-forget requests
 * Return response via AMQP
