@@ -66,7 +66,7 @@ func NewRiemannOutput(client RiemannClient) *RiemannOutput {
 func (r *RiemannOutput) StartRequest(req *http.Request) {
 	attributes := make(map[string]string)
 	attributes["method"] = req.Method
-	attributes["host"] = req.Host
+	attributes["http-host"] = req.Host
 	attributes["path"] = req.URL.Path
 	var event = &raidman.Event{
 		State:      "ok",
@@ -80,7 +80,7 @@ func (r *RiemannOutput) StartRequest(req *http.Request) {
 func (r *RiemannOutput) Emit(req *http.Request, delta time.Duration) {
 	attributes := make(map[string]string)
 	attributes["method"] = req.Method
-	attributes["host"] = req.Host
+	attributes["http-host"] = req.Host
 	attributes["path"] = req.URL.Path
 	var event = &raidman.Event{
 		State:      "ok",
