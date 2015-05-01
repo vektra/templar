@@ -68,6 +68,7 @@ func (r *RiemannOutput) StartRequest(req *http.Request) {
 	attributes["http-method"] = req.Method
 	attributes["http-host"] = req.Host
 	attributes["http-path"] = req.URL.Path
+	attributes["http-url"] = req.URL.String()
 	var event = &raidman.Event{
 		State:      "ok",
 		Service:    "templar request",
@@ -82,6 +83,7 @@ func (r *RiemannOutput) Emit(req *http.Request, delta time.Duration) {
 	attributes["http-method"] = req.Method
 	attributes["http-host"] = req.Host
 	attributes["http-path"] = req.URL.Path
+	attributes["http-url"] = req.URL.String()
 	var event = &raidman.Event{
 		State:      "ok",
 		Service:    "templar response",
