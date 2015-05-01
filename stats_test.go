@@ -28,10 +28,10 @@ func TestStatsdOutput(t *testing.T) {
 		req, err := http.NewRequest("GET", "http://google.com/foo/bar", nil)
 		require.NoError(t, err)
 
-		client.On("Incr", "templar.request.method.GET", 1).Return(nil)
-		client.On("Incr", "templar.request.host.google.com", 1).Return(nil)
-		client.On("Incr", "templar.request.url.google.com-foo-bar", 1).Return(nil)
-		client.On("GaugeDelta", "templar.requests.active", 1).Return(nil)
+		client.On("Incr", "templar.request.method.GET", int64(1)).Return(nil)
+		client.On("Incr", "templar.request.host.google.com", int64(1)).Return(nil)
+		client.On("Incr", "templar.request.url.google.com-foo-bar", int64(1)).Return(nil)
+		client.On("GaugeDelta", "templar.requests.active", int64(1)).Return(nil)
 
 		output.StartRequest(req)
 	})
@@ -42,7 +42,7 @@ func TestStatsdOutput(t *testing.T) {
 
 		t := 1 * time.Second
 
-		client.On("GaugeDelta", "templar.requests.active", -1).Return(nil)
+		client.On("GaugeDelta", "templar.requests.active", int64(-1)).Return(nil)
 		client.On("PrecisionTiming",
 			"templar.request.url.google.com-foo-bar", t).Return(nil)
 
@@ -55,8 +55,8 @@ func TestStatsdOutput(t *testing.T) {
 
 		t := 5 * time.Second
 
-		client.On("Incr", "templar.timeout.host.google.com", 1).Return(nil)
-		client.On("Incr", "templar.timeout.url.google.com-foo-bar", 1).Return(nil)
+		client.On("Incr", "templar.timeout.host.google.com", int64(1)).Return(nil)
+		client.On("Incr", "templar.timeout.url.google.com-foo-bar", int64(1)).Return(nil)
 
 		output.RequestTimeout(req, t)
 
