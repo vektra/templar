@@ -65,9 +65,9 @@ func NewRiemannOutput(client RiemannClient) *RiemannOutput {
 
 func (r *RiemannOutput) StartRequest(req *http.Request) {
 	attributes := make(map[string]string)
-	attributes["method"] = req.Method
+	attributes["http-method"] = req.Method
 	attributes["http-host"] = req.Host
-	attributes["path"] = req.URL.Path
+	attributes["http-path"] = req.URL.Path
 	var event = &raidman.Event{
 		State:      "ok",
 		Service:    "templar request",
@@ -79,9 +79,9 @@ func (r *RiemannOutput) StartRequest(req *http.Request) {
 
 func (r *RiemannOutput) Emit(req *http.Request, delta time.Duration) {
 	attributes := make(map[string]string)
-	attributes["method"] = req.Method
+	attributes["http-method"] = req.Method
 	attributes["http-host"] = req.Host
-	attributes["path"] = req.URL.Path
+	attributes["http-path"] = req.URL.Path
 	var event = &raidman.Event{
 		State:      "ok",
 		Service:    "templar response",
