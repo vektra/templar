@@ -2,10 +2,11 @@ package templar
 
 import (
 	"fmt"
-	"github.com/amir/raidman"
 	"net/http"
 	"strings"
 	"time"
+
+	"github.com/amir/raidman"
 )
 
 type DebugStats struct{}
