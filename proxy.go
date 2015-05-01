@@ -15,11 +15,11 @@ func NewProxy(cl Client, stats Stats) *Proxy {
 	return &Proxy{cl, stats}
 }
 
-type copyResonder struct {
+type copyResponder struct {
 	w http.ResponseWriter
 }
 
-func (c *copyResonder) Send(res *http.Response) io.Writer {
+func (c *copyResponder) Send(res *http.Response) io.Writer {
 	for k, v := range res.Header {
 		c.w.Header()[k] = v
 	}
@@ -34,7 +34,7 @@ func (p *Proxy) ServeHTTP(res http.ResponseWriter, req *http.Request) {
 
 	p.stats.StartRequest(req)
 
-	p.client.Forward(&copyResonder{res}, req)
+	p.client.Forward(&copyResponder{res}, req)
 
 	p.stats.Emit(req, time.Since(start))
 }
