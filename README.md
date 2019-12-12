@@ -87,7 +87,7 @@ below under Duration format.
 
 Say that your app hits an HTTP endpoint at http://isitawesomeyet.com.
 When you send those HTTP requests through templar, it will reduce the
-number of requests to the external service to the bare minumum by combining
+number of requests to the external service to the bare minimum by combining
 requests together. So if a request comes in while we're waiting on another
 request to the same endpoint, we combine those requests together and
 serve the same data to both. This improves response times and reduces
